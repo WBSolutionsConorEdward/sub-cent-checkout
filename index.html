@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Optimized Payment</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f7f6; padding: 40px; display: flex; justify-content: center; }
+        .card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 400px; }
+        button { background: #007bff; color: white; border: none; padding: 12px 20px; width: 100%; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 15px;}
+        button:hover { background: #0056b3; }
+        #suggestion-box { margin-top: 20px; padding: 15px; background: #e9ecef; border-radius: 4px; display: none; font-size: 14px; color: #333; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Growth Suite Order</h2>
+        <p>Amount: <strong>$20.00 USD</strong></p>
+        
+        <button onclick="triggerCheckout()">Proceed to Secure Checkout</button>
+        
+        <div id="suggestion-box">
+            <strong>Localized Route Detected:</strong><br>
+            <span id="rail-text"></span>
+        </div>
+    </div>
+
+    <script>
+        function triggerCheckout() {
+            fetch('/create-payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ amount: 20.00 })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const box = document.getElementById('suggestion-box');
+                    const railText = document.getElementById('rail-text');
+                    
+                    railText.innerText = data.recommended_payment_rail + " (Detected Country: " + data.detected_country + ")";
+                    box.style.display = 'block';
+                } else {
+                    alert('Error: ' + JSON.stringify(data.error));
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>
