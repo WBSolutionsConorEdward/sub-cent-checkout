@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Checkout</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f7f6; padding: 40px; display: flex; justify-content: center; }
+        .card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 400px; text-align: center; }
+        button { background: #007bff; color: white; border: none; padding: 12px 20px; width: 100%; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 15px;}
+        button:hover { background: #0056b3; }
+        #result { margin-top: 20px; font-size: 14px; text-align: left; word-break: break-all; background: #f8f9fa; padding: 10px; border-radius: 4px; display: none; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Growth Suite Order</h2>
+        <p>Amount: <strong>$10.00 USD</strong></p>
+        
+        <button onclick="startCheckout()">Pay with USDT (TRC20)</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function startCheckout() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = "Initializing secure payment gateway...";
+
+            try {
+                // Change this URL to your live Render backend URL if testing in production
+                const backendUrl = 'https://sub-cent-checkout-backend.onrender.com/create-payment';
+
+                const response = await fetch(backendUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        price_amount: 10.0,
+                        price_currency: 'usd',
+                        pay_currency: 'usdttrc20',
+                        order_id: 'ORDER-' + Math.floor(Math.random() * 1000000)
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.payment_id) {
+                    resultDiv.innerHTML = `
+                        <p style="color: green; margin-top:0;"><strong>Invoice Generated!</strong></p>
+                        <p><strong>Payment ID:</strong> ${data.payment_id}</p>
+                        <p>Please send exactly <strong>${data.pay_amount} ${data.pay_currency}</strong> to:</p>
+                        <p style="background: #e9ecef; padding: 8px; font-family: monospace; font-size: 12px; user-select: all;">${data.pay_address}</p>
+                        <p style="font-size: 11px; color: #666; text-align: center;">Your order will update automatically once confirmed.</p>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<p style="color: red;">Error: ${data.error || JSON.stringify(data)}</p>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color: red;">Network Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
